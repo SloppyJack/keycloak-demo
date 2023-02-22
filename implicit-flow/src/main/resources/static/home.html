@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>隐式流程登录首页</title>
+</head>
+<body>
+<h2>当前页面：隐式流程登录系统首页</h2>
+<p>
+    <div>
+    access_token为：
+    </div>
+    <div>
+        <textarea style="width: 80%" id="text"></textarea>
+    </div>
+
+</p>
+<button type="button" id="button">注销登录</button>
+</body>
+</html>
+
+<script>
+    window.onload = function(){
+        var btn = document.getElementById('button');
+        btn.onclick = function(){
+            localStorage.removeItem('accessToken');
+            window.location.href='http://localhost:18080/auth/realms/BusinessSystem/protocol/openid-connect/logout?client_id=test-client&post_logout_redirect_uri=http://localhost:8080/home';
+        }
+
+        var requestUrl = location.href;
+        console.log('当前访问url为：', requestUrl);
+        if (requestUrl.indexOf("#") > 0) {
+            var hashStr = window.location.hash;
+            var param = str2Obj(hashStr.substr(hashStr.indexOf('#'), hashStr.length));
+            console.log('传参为：', param);
+            localStorage.setItem('accessToken', param['access_token']);
+            window.location.href='http://localhost:8080/home';
+        }
+        var flag = isLogin();
+        if (flag == null || flag == undefined || flag == 'undefined') {
+            console.log('当前用户未登录');
+            window.location.href='http://localhost:18080/auth/realms/BusinessSystem/protocol/openid-connect/auth?response_type=token&client_id=test-client&redirect_uri=http://localhost:8080/home';
+        } else {
+            console.log('用户已登录！')
+            var textE = document.getElementById("text");
+            textE.innerHTML = localStorage.getItem('accessToken');
+        }
+    }
+
+    function isLogin(){
+        var accessToken = localStorage.getItem('accessToken');
+        console.log(accessToken);
+        return accessToken;
+    }
+
+    function str2Obj(str) {
+        if ("string" != typeof str) return str
+        if (str.indexOf("&") < 0 && str.indexOf("=") < 0) return {}
+        let newStr = str.split("&"),newOjb = {}
+        newStr.forEach(value => {
+            if (value.indexOf("=") > -1) {
+                let newStr1 = value.split("=")
+                newOjb[newStr1[0]] = newStr1[1]
+            }
+        })
+        return newOjb
+    }
+</script>

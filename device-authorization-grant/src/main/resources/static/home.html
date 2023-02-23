@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设备授权系统首页</title>
+</head>
+<body>
+<h2>当前页面：设备授权系统首页</h2>
+<p>
+    <div>
+    access_token为：
+    </div>
+    <div>
+        <textarea style="width: 80%" id="text"></textarea>
+    </div>
+
+</p>
+<button type="button" id="button">注销登录</button>
+</body>
+</html>
+
+<script>
+    window.onload = function(){
+        var btn = document.getElementById('button');
+        btn.onclick = function(){
+            localStorage.removeItem('accessToken');
+            window.location.href='http://localhost:18080/auth/realms/BusinessSystem/protocol/openid-connect/logout?client_id=test-client&post_logout_redirect_uri=http://localhost:8080/home';
+        }
+
+        var flag = isLogin();
+        if (flag == null || flag == undefined || flag == 'undefined') {
+            console.log('当前用户未登录');
+            window.location.href='http://localhost:8080/login';
+        } else {
+            console.log('用户已登录！')
+            var textE = document.getElementById("text");
+            textE.innerHTML = localStorage.getItem('accessToken');
+        }
+    }
+
+    function isLogin(){
+        var accessToken = localStorage.getItem('accessToken');
+        console.log(accessToken);
+        return accessToken;
+    }
+</script>

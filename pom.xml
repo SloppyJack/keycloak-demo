@@ -11,6 +11,7 @@
     <modules>
         <module>implicit-flow</module>
         <module>authorization-code-flow</module>
+        <module>device-authorization-grant</module>
     </modules>
 
     <parent>

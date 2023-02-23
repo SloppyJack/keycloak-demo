@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设备登录页面</title>
+</head>
+<body>
+<h2>当前页面：设备授权登录页面</h2>
+<div>
+    device_code为：<h6 id="deviceCode"></h6>
+</div>
+<div>
+    user_code：<h6 id="userCode"></h6>
+</div>
+<div>
+    verification_uri：<h6 id="verificationUri"></h6>
+</div>
+<div>
+    <font color="yellow">正在轮询登录状态中：</font>
+    <font id="loginLabel"></font>
+</div>
+</body>
+</html>
+
+<script>
+    let deviceCode = null;
+
+    window.onload = function(){
+        getDeviceCode();
+    }
+
+    function getDeviceCode(){
+        //1、创建xhr的对象
+        let xhr = new XMLHttpRequest()
+        //2、调用open函数('请求类型','url')
+        xhr.open('POST', 'http://localhost:18080/auth/realms/BusinessSystem/protocol/openid-connect/auth/device')
+        //3、设置 Content-Type属性（固定写法）
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+        //4、调用send函数
+        xhr.send('client_id=test-client&client_secret=bT9X1bOMMavpI1NxSg9ta8gARuGBt8yZ')
+        //5、监听事件
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const ret = JSON.parse(xhr.responseText);
+                console.log('ret', ret);
+                document.getElementById("deviceCode").innerHTML = ret.device_code;
+                document.getElementById("userCode").innerHTML = ret.user_code;
+                document.getElementById("verificationUri").innerHTML = ret.verification_uri;
+                deviceCode = ret.device_code;
+
+                // 开始轮询
+                var timer = setInterval(function(){getAccessToken(timer)}, 5500);
+            }
+        }
+    }
+
+    function getAccessToken(timer){
+        //1、创建xhr的对象
+        let xhr = new XMLHttpRequest()
+        //2、调用open函数('请求类型','url')
+        xhr.open('POST', 'http://localhost:18080/auth/realms/BusinessSystem/protocol/openid-connect/token')
+        //3、设置 Content-Type属性（固定写法）
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+        //4、调用send函数
+        xhr.send('grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id=test-client&client_secret=bT9X1bOMMavpI1NxSg9ta8gARuGBt8yZ&device_code=' + deviceCode)
+        //5、监听事件
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                const ret = JSON.parse(xhr.responseText);
+                console.log('ret', ret);
+                const label = document.getElementById("loginLabel");
+                if (xhr.status === 200) {
+                    label.style.color = 'green';
+                    label.innerHTML = '当前时间戳-' + new Date().toLocaleString()  +'，登录成功，即将跳转至主页';
+                    localStorage.setItem('accessToken', ret.access_token);
+                    setTimeout(function (){
+                        window.location.href='http://localhost:8080/home'
+                    }, 2000)
+                } else {
+                    label.style.color = 'red';
+                    label.innerHTML = '当前时间戳-' + new Date().toLocaleString()  +'，未授权成功-' + JSON.stringify(ret);
+                    if (ret.error == 'invalid_grant'){
+                        console.log('清除定时器')
+                        clearInterval(timer);
+                    }
+                }
+            }
+        }
+    }
+</script>

@@ -1,0 +1,24 @@
+server:
+  port: 8081
+keycloak:
+  realm: BusinessSystem
+  auth-server-url: http://localhost:18080/auth
+  ssl-required: external
+  resource: test-client1
+  public-client: false
+  credentials:
+    secret: uxCdoUL2rAs0Rb3jXIVKzccIh9wXzWqu
+  securityConstraints[0]:
+    authRoles[0]: test_role
+    securityCollections[0]:
+      name: protected
+      patterns[0]: /*
+  policy-enforcer-config:
+    on-deny-redirect-to: /accessDenied
+
+logging:
+  level:
+    root: DEBUG
+    org:
+      apache:
+        tomcat: off
